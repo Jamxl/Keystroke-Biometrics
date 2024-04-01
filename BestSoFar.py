@@ -43,23 +43,44 @@ def quit(event, user):
             print("User {} - Incomplete typing. Please try again.".format(user))
         else:
             with open("keystroke_data_{}.txt".format(user), "a") as file:
-                file.write(" ".join(str(x) for x in delta_times) + "\n")
-            
-            # Calculate WPM
-            total_time = sum(delta_times)
-            wpm = (len(sample.split()) / (total_time / 60)) if total_time != 0 else 0
-            user_wpm[user] = wpm
-            print("User {} - Results written to keystroke_data_{}.txt. WPM: {:.2f}".format(user, user, wpm))
-            
-            # Authenticate user if WPM meets threshold and is not within +/- 3 WPM of last test
-            if wpm >= threshold and (user not in authenticated_users or abs(wpm - authenticated_users[user]) > 3):
-                authenticated_users[user] = wpm
-                print("User {} authenticated.".format(user))
-            else:
-                print("User {} not authenticated. Typing speed below threshold or similar to last test.".format(user))
+                file.write("Keystroke times: " + " ".join(str(x) for x in delta_times) + "\n")
+                
+                # Calculate WPM
+                total_time = sum(delta_times)
+                wpm = (len(sample.split()) / (total_time / 60)) if total_time != 0 else 0
+                user_wpm[user] = wpm
+                file.write("WPM: {:.2f}\n".format(wpm))  # Write WPM to file
+                
+                # Authenticate user based on typing speed using initial WPM result for the first test
+                if user in authenticated_users:
+                    last_wpm = authenticated_users[user]
+                    if abs(wpm - last_wpm) <= 3:
+                        print("User {} authenticated for the second test.".format(user))
+                    else:
+                        print("User {} not authenticated for the second test. Typing speed significantly different.".format(user))
+                else:
+                    authenticated_users[user] = wpm  # Update authenticated user with initial WPM result
+                    print("User {} authenticated for the first test.".format(user))
+    
+    master.destroy()  # Close the GUI
+
+    # Authenticate user based on the last recorded WPM within +- 3
+    if user in authenticated_users:
+        last_wpm = authenticated_users[user]
+        if abs(wpm - last_wpm) <= 3:
+            print("User {} authenticated based on last recorded WPM.".format(user))
+        else:
+            print("User {} not authenticated based on last recorded WPM. Typing speed significantly different.".format(user))
+    else:
+            authenticated_users[user] = wpm  # Update authenticated user with new WPM
+
+    # Prompt user to start a new GUI session for the second test
+    get_user_identity()
 
 def get_user_identity():
-    return input("Enter your username: ")
+    global user
+    user = input("Enter your username: ")
+    get_input(user)
 
 def get_input(user):
     global e, master
@@ -73,7 +94,5 @@ def get_input(user):
     print("User {} - TYPE: 'This is a test of your typing skills'".format(user))
     master.mainloop()
 
-# Ask for user identity
-user = get_user_identity()
-
-# Start
+# Initial typing test for WPM calculation
+get_user_identity()
