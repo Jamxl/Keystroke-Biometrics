@@ -3,9 +3,8 @@ from time import time
 import json
 import os
 
-sentence_template = 'My name is {user} and I am authenticating myself'
-sample_length = len([char for char in sentence_template if char.isalpha() or char.isdigit()])
-users_data = {}  # Dictionary to store keypress timings for each user
+model_sentence = 'My name is {user} and I am authenticating myself'
+users_data = {}
 
 def key(event, user):
     if user not in users_data:
@@ -19,34 +18,35 @@ def quit(event, user):
         total_words = users_data[user]['keys_pressed'] // 5
         wpm = total_words / (elapsed_time / 60) if elapsed_time != 0 else 0
 
-        save_results(user, wpm)
+        save_data(user, wpm)
         authenticate_user(user, wpm)
 
     master.destroy()
 
-def save_results(user, wpm):
-    results_folder = "User Data"
-    if not os.path.exists(results_folder):
-        os.makedirs(results_folder)
+def save_data(user, wpm):
+    users_data_folder = "User Data"
+    if not os.path.exists(users_data_folder):
+        os.makedirs(users_data_folder)
 
-    results_file = f"{results_folder}/{user}_typing_results.json"
-    if os.path.exists(results_file):
-        with open(results_file, "r") as file:
+    data_file = f"{users_data_folder}/{user}_wpm_data.json"
+    if os.path.exists(data_file):
+        with open(data_file, "r") as file:
             data = json.load(file)
     else:
         data = []
 
     data.append(wpm)
-    with open(results_file, "w") as file:
+    with open(data_file, "w") as file:
         json.dump(data, file)
 
 def authenticate_user(user, new_wpm):
-    results_folder = "User Data"
-    results_file = f"{results_folder}/{user}_typing_results.json"
-    if os.path.exists(results_file):
-        with open(results_file, "r") as file:
+    users_data_folder = "User Data"
+    data_file = f"{users_data_folder}/{user}_wpm_data.json"
+    if os.path.exists(data_file):
+        with open(data_file, "r") as file:
             data = json.load(file)
         
+
         if len(data) > 1:
             avg_wpm = sum(data[:-1]) / (len(data) - 1)
             if abs(new_wpm - avg_wpm) <= 5.5:
@@ -55,17 +55,17 @@ def authenticate_user(user, new_wpm):
                 print(f"User {user} not authenticated. Typing speed significantly different.")    
     else:
             print(f"No previous WPM record found for user {user}. Please type the sentence three times to get a WPM count.")
-            get_input(user, sentence_template.format(user=user), repeat=3)
+            get_input(user, model_sentence.format(user=user), repeat=3)
             print(f"Initial data has been registered for user {user}. Please authenticate again.")
 
 def get_user_identity():
     user = input("Enter your username: ")
     
-    results_folder = "User Data"
-    results_file = f"{results_folder}/{user}_typing_results.json"
+    users_data_folder = "User Data"
+    data_file = f"{users_data_folder}/{user}_wpm_data.json"
     
-    if os.path.exists(results_file):
-        sentence = sentence_template.format(user=user)
+    if os.path.exists(data_file):
+        sentence = model_sentence.format(user=user)
         get_input(user, sentence)
     else:
         authenticate_user(user, 0)
