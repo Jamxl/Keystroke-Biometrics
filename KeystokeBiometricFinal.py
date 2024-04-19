@@ -12,7 +12,7 @@ def key(event, user, sentence_label):
 
 def quit(event, user):
     elapsed_time = time() - users_data[user]['start_time']
-    total_words = users_data[user]['keys_pressed'] // 5
+    total_words = users_data[user]['keys_pressed'] // 4.79
     wpm = total_words / (elapsed_time / 60) if elapsed_time != 0 else 0
 
     save_data(user, wpm)
