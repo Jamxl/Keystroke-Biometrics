@@ -51,7 +51,7 @@ def authenticate_user(user, new_wpm):
 
 def show_message(message):
     message_window = tk.Tk()
-    message_window.title("Message")
+    message_window.title("Update")
     
     message_label = tk.Label(message_window, text=message, pady=20)
     message_label.pack()
